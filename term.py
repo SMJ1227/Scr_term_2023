@@ -67,7 +67,7 @@ import json
 from tkinter import *
 import tkinter.ttk
 
-url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230525&data=AP01'
+url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230526&data=AP01'
 response = requests.get(url)
 data = response.json()
 
@@ -88,21 +88,23 @@ for item in data:
 window = Tk()
 window.title('환율 검색 프로그램')
 
-notebook = tkinter.ttk.Notebook(window, width=800, height=600)
+notebook = tkinter.ttk.Notebook(window, width=850, height=600)
 notebook.pack()
 
+
 frame1 = Frame(window)
-notebook.add(frame1, text='나라별 환율 정보')
+notebook.add(frame1, text='나라 검색')
+Label(frame1, text='나라 검색', fg='green', font='helvetica 48').pack()
+
+frame2 = Frame(window)
+notebook.add(frame2, text='나라별 환율 정보')
 col_count = 1
 header = ['국가/통화명', '통화 코드', '기준 환율', '송금 받을때', '송금 보낼때']
 
-canvas = Canvas(frame1)
-scrollbar = Scrollbar(frame1, orient='vertical', command=canvas.yview)
+canvas = Canvas(frame2)
+scrollbar = Scrollbar(frame2, orient='vertical', command=canvas.yview)
 scrollable_frame = Frame(canvas)
-scrollable_frame.bind(
-    "<Configure>",
-    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-)
+scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
 canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -129,17 +131,30 @@ col_count += 1
 # gu_combo.pack()
 # Label(frame2, text='페이지2의 내용', fg='yellow', font='helvetica 48').pack()
 
-frame2 = Frame(window)
-notebook.add(frame2, text='기준 환율')
-Label(frame2, text='기준환율', fg='green', font='helvetica 48').pack()
-
 frame3 = Frame(window)
-notebook.add(frame3, text='송금 환율')
-Label(frame3, text='송금 받을때 : \n송금 보낼때 : ', fg='blue', font='helvetica 48').pack()
+notebook.add(frame3, text='환전하기')
+Label(frame3, text='환전액').grid(row=0, column=0, sticky=W)
+Label(frame3, text='기준 환율').grid(row=1, column=0, sticky=W)
+Label(frame3, text='').grid(row=2, column=0, sticky=W)
+Label(frame3, text='미래가치').grid(row=3, column=0, sticky=W)
 
-frame4 = Frame(window)
-notebook.add(frame4, text='나라 검색')
-Label(frame4, text='나라 검색', fg='green', font='helvetica 48').pack()
+e1 = Entry(frame3, justify=RIGHT)
+e1.grid(row=0, column=1)
+e2 = Entry(frame3, justify=RIGHT)
+e2.grid(row=1, column=1)
+e3 = Entry(frame3, justify=RIGHT)
+e3.grid(row=2, column=1)
+
+label = Label(frame3, text='')
+label.grid(row=3, column=1, sticky=E)
+
+#Button(window, text='계산하기'.grid(row=6, column=1, sticky=E)) #,command=self.compute)
+
+#Label(frame3, text='기준환율', fg='green', font='helvetica 48').pack()
+
+frame1 = Frame(window)
+notebook.add(frame1, text='송금 환율')
+Label(frame1, text='송금 받을때 : \n송금 보낼때 : ', fg='blue', font='helvetica 48').pack()
 
 frame5 = Frame(window)
 notebook.add(frame5, text='즐겨찾기')
