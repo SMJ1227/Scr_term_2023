@@ -1,73 +1,10 @@
-'''#notebook 예제
-from tkinter import *
-import tkinter.ttk
-import requests
-import xml.etree.ElementTree as ET
-
-# 환율조회
-url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON'
-# 공공데이터포털에서 발급받은 디코딩되지 않은 인증키 입력
-authkey = "aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd"
-queryParams = {'authkey': authkey, 'searchdate': '2023-05-24', 'data': 'AP01'}
-
-response = requests.get(url, params=queryParams)
-print(response.content)
-root = ET.fromstring(response.content)
-
-
-window = Tk()
-window.title('tkinter notebook')
-notebook = tkinter.ttk.Notebook(window, width=800, height=600)
-notebook.pack()
-
-# frame1 = Frame(window)
-# notebook.add(frame1, text='페이지1')
-# header = ['stnId', 'tmFc', 'wfSv1', 'wn', 'wr']
-# 
-# for i, col_name in enumerate(header):
-#     label = tkinter.Label(frame1, text=col_name, font=("Helvetica", 14, "bold"), borderwidth=1, relief="raised")
-#     label.grid(row=i, column=0)
-# 
-# col_count = 1
-# for item in root.iter('item'):
-#     stnId = item.findtext('stnId')
-#     tmFc = item.findtext("tmFc")
-#     wfSv1 = item.findtext("wfSv1")
-#     wn = item.findtext("wn")
-#     wr = item.findtext("wr")
-#     data = [stnId, tmFc, wfSv1, wn, wr]
-#     for i, value in enumerate(data):
-#         label = tkinter.Label(frame1, text=value, font=("Helvetica", 12), borderwidth=10, relief="ridge")
-#         label.grid(row=i, column=col_count)
-#     col_count += 1
-
-frame2 = Frame(window)
-notebook.add(frame2, text='페이지2')
-Label(frame2, text='페이지2의 내용', fg='yellow', font='helvetica 48').pack()
-
-frame3 = Frame(window)
-notebook.add(frame3, text='페이지3')
-Label(frame3, text='페이지3의 내용', fg='green', font='helvetica 48').pack()
-
-frame4 = Frame(window)
-notebook.add(frame4, text='페이지4')
-Label(frame4, text='페이지4의 내용', fg='blue', font='helvetica 48').pack()
-
-window.mainloop()
-'''
-'''
-from urllib.request import urlopen
-url = ' https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20180102&data=AP01'
-res_body = urlopen(url).read()
-print(res_body.decode('utf-8'))
-
-'''
 import requests
 import json
 from tkinter import *
 import tkinter.ttk
+from tkinter import messagebox
 
-url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230526&data=AP01'
+url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230525&data=AP01'
 response = requests.get(url)
 data = response.json()
 
@@ -75,86 +12,234 @@ data = response.json()
 data_list = []
 
 for item in data:
-    currency_code = item['cur_unit'] # 통화 코드
-    currency_name = item['cur_nm'] # 국가/통화명
-    exchange_rate = item['deal_bas_r'] # 기준 환율
-    ttb = item['ttb'] # 송금 받을때
-    tts = item['tts'] # 송금 보낼때
-    #bkpr = item['bkpr'] # 장부 가격
+    currency_code = item['cur_unit']# 통화 코드
+    currency_name = item['cur_nm']# 국가/통화명
+    exchange_rate = item['deal_bas_r']# 기준 환율
+    ttb = item['ttb']# 송금 받을때
+    tts = item['tts']# 송금 보낼때
     data_list.append([currency_name, currency_code, exchange_rate, ttb, tts])
-    # print(f"국가/통화명: {currency_name} ({currency_code}), 기준 환율: {exchange_rate}, 송금 받을때: {ttb}, 송금 보낼때: {tts}")
-    # (연환가료율)"yy_efee_r":"0",(10일환가료율)"ten_dd_efee_r":"0",(서울외국환중개기준)"kftc_bkpr":"291","kftc_deal_bas_r":"291.7",
+
+header = ['국가/통화명', '통화 코드', '기준 환율', '송금 받을때', '송금 보낼때']
 
 window = Tk()
 window.title('환율 검색 프로그램')
 
-notebook = tkinter.ttk.Notebook(window, width=850, height=600)
+notebook = tkinter.ttk.Notebook(window, width=850, height=400)
 notebook.pack()
 
+def calculate_exchange_rate():
+    selected_currency_index = currency_listbox_3.curselection()
+    if selected_currency_index:
+        selected_currency_info = data_list[selected_currency_index[0]]
+        currency_name = selected_currency_info[0]
+        currency_code = selected_currency_info[1]
+        extracted_currency = currency_name.split(' ')[-1].strip('()')
+        exchange_rate_str = selected_currency_info[2]
+        exchange_rate_str = exchange_rate_str.replace(',', '')  # 쉼표 제거
+        try:
+            exchange_rate = float(exchange_rate_str)
+            input_amount_str = e2.get()
+            input_amount_str = input_amount_str.replace(',', '')  # 쉼표 제거
+            try:
+                input_amount = float(input_amount_str)
+                converted_amount = input_amount / exchange_rate
+                e3.config(text=f"{int(converted_amount)} {extracted_currency}")
+            except ValueError:
+                e3.config(text='입력값 오류')
+        except ValueError:
+            e3.config(text='환율 오류')
+    else:
+        e3.config(text='')
 
+def calculate_tt():
+    selected_currency_index = currency_listbox_4.curselection()
+    if selected_currency_index:
+        selected_currency_info = data_list[selected_currency_index[0]]
+        currency_name = selected_currency_info[0]
+        currency_code = selected_currency_info[1]
+        extracted_currency = currency_name.split(' ')[-1].strip('()')
+        ttb_str = selected_currency_info[3]
+        ttb_str = ttb_str.replace(',', '')  # 쉼표 제거
+        tts_str = selected_currency_info[4]
+        tts_str = tts_str.replace(',', '')  # 쉼표 제거
+        try:
+            ttb_rate = float(ttb_str)
+            tts_rate = float(tts_str)
+            input_amount_str = f2.get()
+            input_amount_str = input_amount_str.replace(',', '')  # 쉼표 제거
+            try:
+                input_amount = float(input_amount_str)
+                converted_amount_ttb = input_amount / ttb_rate
+                converted_amount_tts = input_amount / tts_rate
+                f3.config(text=f"{int(converted_amount_ttb)} {extracted_currency}")
+                f5.config(text=f"{int(converted_amount_tts)} {extracted_currency}")
+            except ValueError:
+                f3.config(text='입력값 오류')
+                f5.config(text='입력값 오류')
+        except ValueError:
+            f3.config(text='환율 오류')
+            f5.config(text='환율 오류')
+    else:
+        f3.config(text='')
+        f5.config(text='')
+
+def update_data(event):
+    selected_country_index = currency_listbox_2.curselection()
+    if selected_country_index:
+        selected_country_info = data_list[selected_country_index[0]]
+        for i, col_name in enumerate(header):
+            label = tkinter.Label(frame2, text=col_name, borderwidth=2, relief="solid")
+            label.grid(row=len(data_list) + 2 + i, column=1)
+            value = selected_country_info[i]
+            value_str = str(value).replace(' ', '/')  # ' '를 '/'로 치환
+            label = tkinter.Label(frame2, text=value_str, font=("Helvetica", 12), borderwidth=2,
+                                  relief="solid")
+            label.grid(row=len(data_list) + 2 + i, column=2)
+    else:
+        # Clear the labels if no country is selected
+        for child in frame2.winfo_children():
+            child.destroy()
+
+def update_exchange_rate(event):
+    selected_currency_index = currency_listbox_3.curselection()
+    if selected_currency_index:
+        selected_currency_info = data_list[selected_currency_index[0]]
+        exchange_rate_str = selected_currency_info[2]
+        exchange_rate_str = exchange_rate_str.replace(',', '')  # 쉼표 제거
+        try:
+            exchange_rate = float(exchange_rate_str)
+            e1.config(text=str(exchange_rate))
+        except ValueError:
+            e1.config(text='기준환율 오류')
+    else:
+        e1.config(text='')
+
+def update_tt(event):
+    selected_currency_index = currency_listbox_4.curselection()
+    if selected_currency_index:
+        selected_currency_info = data_list[selected_currency_index[0]]
+        ttb_str = selected_currency_info[3]
+        ttb_str = ttb_str.replace(',', '')  # 쉼표 제거
+        tts_str = selected_currency_info[4]
+        tts_str = tts_str.replace(',', '')  # 쉼표 제거
+        try:
+            ttb = float(ttb_str)
+            f0.config(text=str(ttb))
+            tts = float(tts_str)
+            f1.config(text=str(tts))
+        except ValueError:
+            f0.config(text='ttb 오류')
+            f1.config(text='tts 오류')
+    else:
+        f0.config(text='')
+        f1.config(text='')
+
+#프레임1
 frame1 = Frame(window)
-notebook.add(frame1, text='나라 검색')
-Label(frame1, text='나라 검색', fg='green', font='helvetica 48').pack()
-
-frame2 = Frame(window)
-notebook.add(frame2, text='나라별 환율 정보')
+notebook.add(frame1, text='나라별 환율 정보')
 col_count = 1
-header = ['국가/통화명', '통화 코드', '기준 환율', '송금 받을때', '송금 보낼때']
 
-canvas = Canvas(frame2)
-scrollbar = Scrollbar(frame2, orient='vertical', command=canvas.yview)
+canvas = Canvas(frame1)
+scrollbar = Scrollbar(frame1, orient='vertical', command=canvas.yview)
 scrollable_frame = Frame(canvas)
 scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
 canvas.configure(yscrollcommand=scrollbar.set)
 
-scrollbar.pack(side='right', fill='y')
-canvas.pack(side='left', fill='both', expand=True)
+v = IntVar()
+from tkinter import messagebox
 
-for i, row_name in enumerate(header):
-    label = tkinter.Label(scrollable_frame, text=row_name, font=("Helvetica", 14, "bold"), borderwidth=1, relief="raised", width=13, height=2)
-    label.grid(row=0, column=i+2)
+def display_exchange_rate_koreaexim():
+    selected_bank = v.get()
+    if selected_bank == 1:
+        scrollbar.pack(side='right', fill='y')
+        canvas.pack(side='left', fill='both', expand=True)
+        for i, row_name in enumerate(header):
+            label = tkinter.Label(scrollable_frame, text=row_name, font=("Helvetica", 14, "bold"), borderwidth=2,
+                                  relief="solid", width=13, height=2)
+            label.grid(row=0, column=i + 2)
+        for i, currency_info in enumerate(data_list):
+            for j, value in enumerate(currency_info):
+                value_str = str(value).replace(' ', '/')  # ' '를 '/'로 치환
+                label = tkinter.Label(scrollable_frame, text=value_str, font=("Helvetica", 12), borderwidth=2,
+                                      relief="solid", width=17, height=2)
+                label.grid(row=i + 1, column=j + 2)
+# 라디오 버튼 생성
+Radiobutton(frame1, text='한국수출입은행', variable=v, value=1, command=display_exchange_rate_koreaexim).pack()
+Radiobutton(frame1, text='하나은행', variable=v, value=2, command=display_exchange_rate_koreaexim).pack()
 
-for i, currency_info in enumerate(data_list):
-    for j, value in enumerate(currency_info):
-        label = tkinter.Label(scrollable_frame, text=str(value), font=("Helvetica", 12), borderwidth=3, relief="ridge", width=17, height=2)
-        label.grid(row=i+1, column=j+2)  # Start from column 2 to avoid overlapping with the header
-col_count += 1
+#프레임2
+frame2 = Frame(window)
+notebook.add(frame2, text='나라 검색')
+currency_names_2 = [currency_info[0] for currency_info in data_list]
+currency_listbox_2 = Listbox(frame2, selectmode=SINGLE, height=len(currency_names_2))
 
-# frame2 = Frame(window)
-# notebook.add(frame2, text='페이지2')
-# # 구 선택 콤보박스 생성
-# selected_con = tkinter.StringVar()
-# selected_con.set("한국")  # 초기값 설정
-# gu_options = set([data_list[currency_name].split()[1] for hospital in hospitals])
-# gu_combo = ttk.Combobox(root, textvariable=selected_gu, values=list(gu_options))
-# gu_combo.pack()
-# Label(frame2, text='페이지2의 내용', fg='yellow', font='helvetica 48').pack()
+for currency_name in currency_names_2:
+    currency_listbox_2.insert(END, currency_name)
+currency_listbox_2.grid(row=0, column=0, sticky=W)
+currency_listbox_2.bind('<<ListboxSelect>>', update_data)  # 리스트박스 선택 이벤트에 update_data 함수 바인딩
 
+#프레임3
 frame3 = Frame(window)
 notebook.add(frame3, text='환전하기')
-Label(frame3, text='환전액').grid(row=0, column=0, sticky=W)
-Label(frame3, text='기준 환율').grid(row=1, column=0, sticky=W)
-Label(frame3, text='').grid(row=2, column=0, sticky=W)
-Label(frame3, text='미래가치').grid(row=3, column=0, sticky=W)
+currency_names_3 = [currency_info[0] for currency_info in data_list]
+currency_listbox_3 = Listbox(frame3, selectmode=SINGLE, height=len(currency_names_3))
+for currency_name in currency_names_3:
+    currency_listbox_3.insert(END, currency_name)
+currency_listbox_3.grid(row=0, column=0, rowspan=3, sticky=W)
+currency_listbox_3.bind('<<ListboxSelect>>', update_exchange_rate)  # 리스트박스 선택 이벤트에 update_exchange_rate 함수 바인딩
 
-e1 = Entry(frame3, justify=RIGHT)
-e1.grid(row=0, column=1)
-e2 = Entry(frame3, justify=RIGHT)
-e2.grid(row=1, column=1)
-e3 = Entry(frame3, justify=RIGHT)
-e3.grid(row=2, column=1)
+Label(frame3, text='기준환율', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=0, column=1)
+Label(frame3, text='환전액', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=2, column=1)
+Label(frame3, text='한국수출입은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=0, column=4)
+Label(frame3, text='하나은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=1, column=4)
 
-label = Label(frame3, text='')
-label.grid(row=3, column=1, sticky=E)
+e1 = Label(frame3, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+e1.grid(row=0, column=2)
+e2 = Entry(frame3, justify=CENTER, borderwidth=1, relief="solid")
+e2.grid(row=2, column=2)
+e3 = Label(frame3, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+e3.grid(row=0, column=5)
+e4 = Label(frame3, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+e4.grid(row=1, column=5)
 
-#Button(window, text='계산하기'.grid(row=6, column=1, sticky=E)) #,command=self.compute)
+Button(frame3, text='계산하기', command=calculate_exchange_rate).grid(row=2, column=5, sticky=E)
 
-#Label(frame3, text='기준환율', fg='green', font='helvetica 48').pack()
+#프레임4
+frame4 = Frame(window)
+notebook.add(frame4, text='송금 환율')
+currency_names_4 = [currency_info[0] for currency_info in data_list]
+currency_listbox_4 = Listbox(frame4, selectmode=SINGLE, height=len(currency_names_4))
+for currency_name in currency_names_4:
+    currency_listbox_4.insert(END, currency_name)
+currency_listbox_4.grid(row=0, column=0, rowspan=6, sticky=W)
+currency_listbox_4.bind('<<ListboxSelect>>', update_tt)  # 리스트박스 선택 이벤트에 update_tt 함수 바인딩
 
-frame1 = Frame(window)
-notebook.add(frame1, text='송금 환율')
-Label(frame1, text='송금 받을때 : \n송금 보낼때 : ', fg='blue', font='helvetica 48').pack()
+Label(frame4, text='송금보낼때', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=0, column=1)
+Label(frame4, text='송금받을때', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=2, column=1)
+Label(frame4, text='환전액', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=4, column=1)
+Label(frame4, text='한국수출입은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=0, column=4)
+Label(frame4, text='하나은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=1, column=4)
+Label(frame4, text='한국수출입은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=2, column=4)
+Label(frame4, text='하나은행', font=("Helvetica", 14, "bold"), justify=CENTER, borderwidth=1, relief="solid").grid(row=3, column=4)
+
+f0 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f0.grid(row=0, column=2)
+f1 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f1.grid(row=2, column=2)
+f2 = Entry(frame4, justify=CENTER, borderwidth=1, relief="solid")
+f2.grid(row=4, column=2)
+f3 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f3.grid(row=0, column=5)
+f4 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f4.grid(row=1, column=5)
+f5 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f5.grid(row=2, column=5)
+f6 = Label(frame4, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
+f6.grid(row=3, column=5)
+
+Button(frame4, text='계산하기', command=calculate_tt).grid(row=4, column=5, sticky=E)
+
 
 frame5 = Frame(window)
 notebook.add(frame5, text='즐겨찾기')
