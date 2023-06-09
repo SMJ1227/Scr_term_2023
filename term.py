@@ -3,6 +3,7 @@ import json
 from tkinter import *
 import tkinter.ttk
 from tkinter import messagebox
+from PIL import Image, ImageTk, ImageFilter
 
 #한국수출입은행
 url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230524&data=AP01'
@@ -11,6 +12,7 @@ data = response.json()
 
 # Access and print specific elements from JSON data
 data_list = []
+star_list = []
 
 for item in data:
     currency_code = item['cur_unit']# 통화 코드
@@ -18,7 +20,8 @@ for item in data:
     exchange_rate = item['deal_bas_r']# 매매 기준율
     ttb = item['ttb']# 송금 받을때
     tts = item['tts']# 송금 보낼때
-    data_list.append([currency_name, currency_code, exchange_rate, ttb, tts])
+    star = False
+    data_list.append([currency_name, currency_code, exchange_rate, ttb, tts, star])
 
 header = ['국가/통화명', '통화 코드', '매매 기준율', '송금 받을때', '송금 보낼때']
 
@@ -114,6 +117,33 @@ def update_data(event):
             g4.config(text=str(ttb_info))
             tts_info = float(sel_tts)
             g5.config(text=str(tts_info))
+            # 국기 이미지 업데이트
+            image_path = selected_currency_info[0] + ".png"
+            img = Image.open(image_path)
+            # 라벨의 크기에 맞게 이미지 크기 조절
+            label_width = g6.winfo_width()
+            label_height = g6.winfo_height()
+            image_width, image_height = img.size
+            # 최소 너비와 최소 높이 설정
+            min_width = 150
+            min_height = 100
+            # 이미지의 가로 세로 비율에 맞게 크기 조절
+            if image_width / image_height > label_width / label_height:
+                resized_img = img.resize(
+                    (max(label_width, min_width), int(max(label_width * image_height / image_width, min_height))),
+                    Image.LANCZOS)
+            else:
+                resized_img = img.resize(
+                    (int(max(label_height * image_width / image_height, min_width)), max(label_height, min_height)), Image.LANCZOS)
+            tk_img = ImageTk.PhotoImage(resized_img)  # 이미지를 Tkinter에서 사용할 수 있는 형식으로 변환
+            g6.config(image=None)  # 기존의 이미지 객체 제거
+            g6.config(image=tk_img)
+            g6.image = tk_img  # 이미지가 Garbage Collected 되지 않도록 변수에 대입
+            # 별 이미지 업데이트
+            if selected_currency_info[5]:
+                star_button.config(image=yellow_star_image)
+            else:
+                star_button.config(image=black_star_image)
         except ValueError:
             g1.config(text='국가/통화명 오류')
             g2.config(text='통화 코드 오류')
@@ -126,6 +156,22 @@ def update_data(event):
         g3.config(text='')
         g4.config(text='')
         g5.config(text='')
+
+def toggle_star():
+    selected_currency_index = currency_listbox_2.curselection()
+    if selected_currency_index:
+        selected_currency_info = data_list[selected_currency_index[0]]
+        current_image = star_button['image']
+        if selected_currency_info[5]:
+            selected_currency_info[5] = False
+            star_button.config(image=black_star_image)
+            star_list.remove(selected_currency_info[0])
+            print(star_list)
+        elif not selected_currency_info[5]:
+            selected_currency_info[5] = True
+            star_button.config(image=yellow_star_image)
+            star_list.append(selected_currency_info[0])
+            print(star_list)
 
 def update_exchange_rate(event):
     selected_currency_index = currency_listbox_3.curselection()
@@ -219,6 +265,15 @@ g4 = Label(frame2, bg='white', justify=CENTER, width=20, height=1, borderwidth=1
 g4.grid(row=3, column=3)
 g5 = Label(frame2, bg='white', justify=CENTER, width=20, height=1, borderwidth=1, relief="solid")
 g5.grid(row=4, column=3)
+photo_flag = PhotoImage(file='bg.png', width=150, height=100)
+g6 = Label(frame2, image=photo_flag)
+g6.grid(row=0, column=4)
+
+black_star_image = PhotoImage(file='blackstar.png', width=100, height=100)
+yellow_star_image = PhotoImage(file='yellowstar.png', width=100, height=100)
+
+star_button = Button(frame2, image=black_star_image, command=toggle_star)
+star_button.grid(row=0, column=5, sticky=E)
 
 #프레임3
 frame3 = Frame(window)
