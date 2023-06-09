@@ -6,7 +6,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk, ImageFilter
 
 #한국수출입은행
-url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230524&data=AP01'
+url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230609&data=AP01'
 response = requests.get(url)
 data = response.json()
 
@@ -336,9 +336,27 @@ f6.grid(row=3, column=5)
 
 Button(frame4, text='계산하기', command=calculate_tt).grid(row=4, column=5, sticky=E)
 
-
+# 프레임5
 frame5 = Frame(window)
 notebook.add(frame5, text='즐겨찾기')
-Label(frame5, text='즐겨찾기', fg='green', font='helvetica 48').pack()
+
+currency_names_5 = [currency_info[0].replace(' ', '/') for currency_info in star_list]
+currency_listbox_5 = Listbox(frame5, selectmode=SINGLE, height=len(currency_names_5))
+for currency_info in star_list:
+    currency_name = currency_info[0].replace(' ', '/')
+    currency_listbox_5.insert(END, currency_name)  # 전체 문자열 추가
+currency_listbox_5.grid(row=0, column=0, rowspan=6, sticky=W)
+
+for i, row_name in enumerate(header):
+    label = tkinter.Label(frame5, text=row_name, font=("Helvetica", 14, "bold"), borderwidth=2, relief="solid", width=13, height=2)
+    label.grid(row=i, column=2)
+
+def update_star_list(event):
+    currency_listbox_5.delete(0, END)  # 기존 아이템 모두 삭제
+    currency_names_5 = [currency_info.replace(' ', '/') for currency_info in star_list]
+    for currency_name in currency_names_5:
+        currency_listbox_5.insert(END, currency_name)
+notebook.bind("<<NotebookTabChanged>>", update_star_list)
+
 
 window.mainloop()
