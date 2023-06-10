@@ -2,8 +2,10 @@ import requests
 import json
 from tkinter import *
 import tkinter.ttk
-from tkinter import messagebox
+import tkinter.messagebox as messagebox
 from PIL import Image, ImageTk, ImageFilter
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Malgun Gothic'
 
 #한국수출입은행
 url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230609&data=AP01'
@@ -33,28 +35,46 @@ notebook.pack()
 
 #프레임1
 def display_exchange_rate_koreaexim():
-    selected_bank = v.get()
-    if selected_bank == 1:
-        scrollbar.pack(side='right', fill='y')
-        canvas.pack(side='left', fill='both', expand=True)
-        for i, row_name in enumerate(header):
-            label = tkinter.Label(scrollable_frame, text=row_name, font=("Helvetica", 14, "bold"), borderwidth=2,
-                                  relief="solid", width=13, height=2)
-            label.grid(row=0, column=i + 2)
-        for i, currency_info in enumerate(data_list):
-            for j, value in enumerate(currency_info[:-1]):
-                value_str = str(value).replace(' ', '/')  # ' '를 '/'로 치환
-                label = tkinter.Label(scrollable_frame, text=value_str, font=("Helvetica", 12), borderwidth=2,
-                                      relief="solid", width=17, height=2)
-                label.grid(row=i + 1, column=j + 2)
+    scrollbar.pack(side='right', fill='y')
+    canvas.pack(side='left', fill='both', expand=True)
+    for i, row_name in enumerate(header):
+        label = tkinter.Label(scrollable_frame, text=row_name, font=("Helvetica", 14, "bold"), borderwidth=2, relief="solid", width=13, height=2)
+        label.grid(row=0, column=i + 2)
+    for i, currency_info in enumerate(data_list):
+        for j, value in enumerate(currency_info[:-1]):
+            value_str = str(value).replace(' ', '/')  # ' '를 '/'로 치환
+            label = tkinter.Label(scrollable_frame, text=value_str, font=("Helvetica", 12), borderwidth=2, relief="solid", width=17, height=2)
+            label.grid(row=i + 1, column=j + 2)
+
+def messagebox_graph():
+    exchange_rates = []
+    currency_names = []
+
+    for item in data_list:
+        currency_name = item[0].replace(' ', '/')  # 국가/통화명
+        exchange_rate = float(item[2].replace(',', ''))  # 매매 기준율 (쉼표 제거 후 float로 변환)
+        currency_names.append(currency_name)
+        exchange_rates.append(exchange_rate)
+
+    plt.figure(num='매매 기준율', figsize=(10, 6))
+    # 그래프 그리기
+    bars = plt.bar(currency_names, exchange_rates)
+    plt.xlabel('국가/통화명')
+    plt.ylabel('매매 기준율')
+    plt.title('매매 기준율')
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height, str(height), ha='center', va='bottom')
+    plt.show()
 
 frame1 = Frame(window)
 notebook.add(frame1, text='나라별 환율 정보')
 col_count = 1
 
-v = IntVar()
-# 라디오 버튼 생성
-Radiobutton(frame1, text='한국수출입은행', variable=v, value=1, command=display_exchange_rate_koreaexim).pack()
+Button(frame1, text='한국수출입은행', command=display_exchange_rate_koreaexim).pack()
+Button(frame1, text='그래프 생성', command=messagebox_graph).pack()
 
 canvas = Canvas(frame1)
 scrollbar = Scrollbar(frame1, orient='vertical', command=canvas.yview)
