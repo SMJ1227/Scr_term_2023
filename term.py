@@ -2,9 +2,11 @@ import requests
 import json
 from tkinter import *
 import tkinter.ttk
+import spam
 import tkinter.messagebox as messagebox
 from PIL import Image, ImageTk, ImageFilter
 import matplotlib.pyplot as plt
+
 plt.rcParams['font.family'] = 'Malgun Gothic'
 
 #한국수출입은행
@@ -217,6 +219,7 @@ def update_exchange_rate(event):
     else:
         e1.config(text='')
 
+
 def calculate_exchange_rate():
     selected_currency_index = currency_listbox_3.curselection()
     if selected_currency_index:
@@ -226,23 +229,25 @@ def calculate_exchange_rate():
         extracted_currency = currency_name.split(' ')[-1].strip('()')
         exchange_rate_str = selected_currency_info[2]
         exchange_rate_str = exchange_rate_str.replace(',', '')  # 쉼표 제거
+
         try:
             exchange_rate = float(exchange_rate_str)
             input_amount_str = e2.get()
             input_amount_str = input_amount_str.replace(',', '')  # 쉼표 제거
             try:
                 input_amount = float(input_amount_str)
-                converted_amount = input_amount / exchange_rate
+                converted_amount = float(spam.division(input_amount, exchange_rate))
                 if extracted_currency in ['옌', '루피아']:
-                    e3.config(text=f"{float(converted_amount) * 100:.6f} {extracted_currency}")
+                    e3.config(text=f"{converted_amount * 100:.4f} {extracted_currency}")
                 else:
-                    e3.config(text=f"{float(converted_amount):.6f} {extracted_currency}")
+                    e3.config(text=f"{converted_amount:.4f} {extracted_currency}")
             except ValueError:
                 e3.config(text='입력값 오류')
         except ValueError:
             e3.config(text='환율 오류')
     else:
         e3.config(text='')
+
 
 frame3 = Frame(window)
 notebook.add(frame3, text='매매 기준율')
@@ -305,8 +310,8 @@ def calculate_tt():
             input_amount_str = input_amount_str.replace(',', '')  # 쉼표 제거
             try:
                 input_amount = float(input_amount_str)
-                converted_amount_ttb = input_amount / ttb_rate
-                converted_amount_tts = input_amount / tts_rate
+                converted_amount_ttb = float(spam.division(input_amount, ttb_rate))
+                converted_amount_tts = float(spam.division(input_amount, tts_rate))
                 if extracted_currency in ['옌', '루피아']:
                     f3.config(text=f"{float(converted_amount_ttb) * 100:.6f} {extracted_currency}")
                     f5.config(text=f"{float(converted_amount_tts) * 100:.6f} {extracted_currency}")
