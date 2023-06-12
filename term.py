@@ -11,7 +11,7 @@ from googlemaps import Client
 
 plt.rcParams['font.family'] = 'Malgun Gothic'
 # Google Maps API 클라이언트 생성
-Google_API_Key = 'AIzaSyD9bkhfaVme5uM0uNj2j5oddiuzZqBADDM'
+
 gmaps = Client(key=Google_API_Key)
 #한국수출입은행
 url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230609&data=AP01'
