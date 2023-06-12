@@ -3,12 +3,16 @@ import json
 from tkinter import *
 import tkinter.ttk
 import spam
+import io
 import tkinter.messagebox as messagebox
 from PIL import Image, ImageTk, ImageFilter
 import matplotlib.pyplot as plt
+from googlemaps import Client
 
 plt.rcParams['font.family'] = 'Malgun Gothic'
-
+# Google Maps API 클라이언트 생성
+Google_API_Key = 'AIzaSyD9bkhfaVme5uM0uNj2j5oddiuzZqBADDM'
+gmaps = Client(key=Google_API_Key)
 #한국수출입은행
 url = 'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=aczTjwLTrbV7vvKgVuQj1Vtb1uLoTepd&searchdate=20230609&data=AP01'
 response = requests.get(url)
@@ -86,6 +90,30 @@ canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
 canvas.configure(yscrollcommand=scrollbar.set)
 
 #프레임2
+def update_map():
+    selected_index = currency_listbox_2.curselection()
+    if selected_index == '위안화':
+        selected_country = '중국'
+    elif selected_index == '유로':
+        selected_country = '유럽'
+    else:
+        selected_country = currency_listbox_2.get(selected_index)
+    geocode_result = gmaps.geocode(selected_country)
+    if geocode_result:
+        location = geocode_result[0]['geometry']['location']
+        latitude = location['lat']
+        longitude = location['lng']
+        zoom = 3
+        map_url = f"https://maps.googleapis.com/maps/api/staticmap?center={latitude},{longitude}&zoom={zoom}&size=400x400&maptype=roadmap"
+        # 나라 위치에 마커 추가
+        marker_url = f"&markers=color:red%7C{latitude},{longitude}"
+        map_url += marker_url
+        response = requests.get(map_url+'&key='+Google_API_Key)
+        image = Image.open(io.BytesIO(response.content))
+        photo = ImageTk.PhotoImage(image)
+        map_label.configure(image=photo)
+        map_label.image = photo
+
 def toggle_star():
     selected_currency_index = currency_listbox_2.curselection()
     if selected_currency_index:
@@ -162,6 +190,8 @@ def update_data(event):
         g3.config(text='')
         g4.config(text='')
         g5.config(text='')
+    # 맵 이미지 업데이트
+    update_map()
 
 def update_star_list(event):
     currency_listbox_5.delete(0, END)  # 기존 아이템 모두 삭제
@@ -197,12 +227,14 @@ g5.grid(row=4, column=3)
 photo_flag = PhotoImage(file='bg.png', width=150, height=100)
 g6 = Label(frame2, image=photo_flag)
 g6.grid(row=0, column=4)
+map_label = Label(frame2)
+map_label.grid(row=1, column=4, rowspan=14)
 
 black_star_image = PhotoImage(file='blackstar.png', width=100, height=100)
 yellow_star_image = PhotoImage(file='yellowstar.png', width=100, height=100)
 
 star_button = Button(frame2, image=black_star_image, command=toggle_star)
-star_button.grid(row=0, column=5, sticky=E)
+star_button.grid(row=0, column=4, sticky=E)
 
 #프레임3
 def update_exchange_rate(event):
@@ -453,8 +485,6 @@ l5.grid(row=4, column=3)
 photo_flag_frame5 = PhotoImage(file='bg.png', width=150, height=100)
 l6 = Label(frame5, image=photo_flag_frame5)
 l6.grid(row=0, column=4)
-
-
 
 
 window.mainloop()
