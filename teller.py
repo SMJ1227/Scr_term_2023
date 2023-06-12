@@ -65,7 +65,7 @@ def handle(msg):
     else:
         noti.sendMessage(chat_id, """모르는 명령어입니다.\n
         전체환율\n
-        환율 나라\n
+        나라 나라명\n
         중 하나의 명령을 입력하세요.\n """)
 
 today = date.today()
